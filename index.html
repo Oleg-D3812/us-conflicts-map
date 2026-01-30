@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>US Military Conflicts Map (1900-2025)</title>
+
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+    <!-- noUiSlider CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.7.1/nouislider.min.css" />
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="header">
+            <h1>US Military Conflicts (1900-2025)</h1>
+            <p class="subtitle">Select a date range to explore conflicts</p>
+        </header>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Sidebar -->
+            <aside class="sidebar">
+                <!-- President Display -->
+                <div class="president-panel">
+                    <h2>President(s)</h2>
+                    <div id="president-display" class="president-display">
+                        <!-- Presidents will be inserted here -->
+                    </div>
+                </div>
+
+                <!-- Active Conflicts List -->
+                <div class="conflicts-panel">
+                    <h2>Active Conflicts</h2>
+                    <div id="conflicts-list" class="conflicts-list">
+                        <p class="no-conflicts">Select a date range to see conflicts</p>
+                    </div>
+                </div>
+
+                <!-- Legend -->
+                <div class="legend-panel">
+                    <h2>Legend</h2>
+                    <div class="legend-item">
+                        <span class="legend-color active-conflict"></span>
+                        <span>Active Conflict Zone</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-color multiple-conflicts"></span>
+                        <span>Multiple Conflicts</span>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Map Container -->
+            <div class="map-container">
+                <div id="map"></div>
+            </div>
+        </div>
+
+        <!-- Timeline -->
+        <div class="timeline-container">
+            <div class="date-display">
+                <span id="start-date-display">1900</span>
+                <span class="date-separator">to</span>
+                <span id="end-date-display">2025</span>
+            </div>
+            <div id="timeline-slider"></div>
+            <div class="timeline-labels">
+                <span>1900</span>
+                <span>1925</span>
+                <span>1950</span>
+                <span>1975</span>
+                <span>2000</span>
+                <span>2025</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Conflict Detail Modal -->
+    <div id="conflict-modal" class="modal hidden">
+        <div class="modal-content">
+            <button class="modal-close" id="modal-close">&times;</button>
+            <div id="modal-body">
+                <!-- Conflict details will be inserted here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <!-- noUiSlider JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.7.1/nouislider.min.js"></script>
+
+    <!-- Application JS -->
+    <script src="js/data.js"></script>
+    <script src="js/map.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
