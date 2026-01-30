@@ -6,6 +6,7 @@ let map;
 let geoJsonLayer;
 let countryLayers = {};
 let highlightedCountries = new Set();
+let countryConflictData = {}; // Stores conflict type and count per country
 
 // GeoJSON data URL (Natural Earth data via CDN)
 const GEOJSON_URL = 'https://raw.githubusercontent.com/datasets/geo-countries/master/data/countries.geojson';
@@ -83,16 +84,38 @@ function defaultCountryStyle(feature) {
 }
 
 /**
- * Style for highlighted conflict countries
+ * Style for highlighted conflict countries based on conflict type
+ * @param {string} typeId - The conflict type ID
+ * @param {boolean} hasMultiple - Whether country has multiple conflicts
  */
-function highlightStyle(conflictCount) {
+function highlightStyle(typeId, hasMultiple) {
+    const type = conflictTypes[typeId];
+    const color = type ? type.color : '#e53e3e';
     return {
-        fillColor: conflictCount > 1 ? '#9b2c2c' : '#e53e3e',
+        fillColor: color,
         weight: 2,
         opacity: 1,
-        color: '#fc8181',
-        fillOpacity: 0.6
+        color: hasMultiple ? '#ffffff' : lightenColor(color, 30),
+        fillOpacity: hasMultiple ? 0.8 : 0.6
     };
+}
+
+/**
+ * Lighten a hex color by a percentage
+ * @param {string} color - Hex color
+ * @param {number} percent - Percentage to lighten
+ */
+function lightenColor(color, percent) {
+    const num = parseInt(color.replace('#', ''), 16);
+    const amt = Math.round(2.55 * percent);
+    const R = (num >> 16) + amt;
+    const G = (num >> 8 & 0x00FF) + amt;
+    const B = (num & 0x0000FF) + amt;
+    return '#' + (0x1000000 +
+        (R < 255 ? R < 1 ? 0 : R : 255) * 0x10000 +
+        (G < 255 ? G < 1 ? 0 : G : 255) * 0x100 +
+        (B < 255 ? B < 1 ? 0 : B : 255)
+    ).toString(16).slice(1);
 }
 
 /**
@@ -132,9 +155,11 @@ function resetHighlightOnHover(e) {
     const layer = e.target;
     const countryCode = layer.feature.properties['ISO3166-1-Alpha-2'];
 
-    if (highlightedCountries.has(countryCode)) {
-        const conflictCount = getConflictCountForCountry(countryCode);
-        layer.setStyle(highlightStyle(conflictCount));
+    if (highlightedCountries.has(countryCode) && countryConflictData[countryCode]) {
+        const data = countryConflictData[countryCode];
+        const hasMultiple = data.count > 1;
+        const primaryType = getPrimaryConflictType(data.types);
+        layer.setStyle(highlightStyle(primaryType, hasMultiple));
     } else {
         layer.setStyle(defaultCountryStyle(layer.feature));
     }
@@ -164,23 +189,52 @@ function updateHighlightedCountries(activeConflicts) {
         }
     });
     highlightedCountries.clear();
+    countryConflictData = {};
 
-    // Build map of countries to conflict counts
-    const countryConflictCounts = {};
+    // Build map of countries to conflict data (type and count)
     activeConflicts.forEach(conflict => {
         conflict.countries.forEach(code => {
-            countryConflictCounts[code] = (countryConflictCounts[code] || 0) + 1;
+            if (!countryConflictData[code]) {
+                countryConflictData[code] = {
+                    types: [],
+                    count: 0,
+                    primaryType: conflict.type // First conflict type encountered
+                };
+            }
+            countryConflictData[code].count++;
+            if (!countryConflictData[code].types.includes(conflict.type)) {
+                countryConflictData[code].types.push(conflict.type);
+            }
         });
     });
 
-    // Highlight new countries
-    Object.keys(countryConflictCounts).forEach(code => {
+    // Highlight new countries with type-based colors
+    Object.keys(countryConflictData).forEach(code => {
         if (countryLayers[code]) {
             highlightedCountries.add(code);
-            countryLayers[code].setStyle(highlightStyle(countryConflictCounts[code]));
+            const data = countryConflictData[code];
+            const hasMultiple = data.count > 1;
+            // Use the most severe type (type1 > type2 > type3 > type4)
+            const primaryType = getPrimaryConflictType(data.types);
+            countryLayers[code].setStyle(highlightStyle(primaryType, hasMultiple));
             countryLayers[code].bringToFront();
         }
     });
+}
+
+/**
+ * Get the primary (most severe) conflict type from an array of types
+ * @param {Array} types - Array of conflict type IDs
+ * @returns {string} The primary conflict type ID
+ */
+function getPrimaryConflictType(types) {
+    const priority = ['type1', 'type2', 'type3', 'type4'];
+    for (const type of priority) {
+        if (types.includes(type)) {
+            return type;
+        }
+    }
+    return types[0] || 'type1';
 }
 
 /**
@@ -211,7 +265,6 @@ function showCountryConflicts(countryCode, countryName, latlng) {
 
     let popupContent = `<div class="popup-content">
         <h3>${countryName}</h3>
-        <p>${countryConflicts.length} conflict${countryConflicts.length > 1 ? 's' : ''} in selected period</p>
         <div class="popup-conflicts-list">`;
 
     countryConflicts.forEach(conflict => {

@@ -4,9 +4,11 @@
  */
 
 // Application state
-let currentStartDate = new Date('1900-01-01');
-let currentEndDate = new Date('2025-12-31');
+let currentStartDate = new Date('2016-01-01');
+let currentEndDate = new Date('2026-12-31');
 let slider;
+let selectedPresident = null;
+let isPresidentSelection = false; // Flag to track programmatic slider changes
 
 /**
  * Initialize the application
@@ -26,12 +28,12 @@ function initTimeline() {
 
     // Create date range slider
     slider = noUiSlider.create(sliderElement, {
-        start: [1900, 2025],
+        start: [2016, 2026],
         connect: true,
         step: 1,
         range: {
             'min': 1900,
-            'max': 2025
+            'max': 2026
         },
         format: {
             to: value => Math.round(value),
@@ -53,6 +55,13 @@ function initTimeline() {
 
         // Update map and sidebar
         updateDisplay();
+    });
+
+    // Clear president selection only when user manually drags the slider
+    slider.on('slide', () => {
+        if (!isPresidentSelection) {
+            selectedPresident = null;
+        }
     });
 }
 
@@ -114,15 +123,14 @@ function getActivePresidents() {
  */
 function updateDisplay() {
     const activeConflicts = getActiveConflicts();
-    const activePresidents = getActivePresidents();
 
     // Update map highlighting
     if (typeof updateHighlightedCountries === 'function') {
         updateHighlightedCountries(activeConflicts);
     }
 
-    // Update president display
-    updatePresidentDisplay(activePresidents);
+    // Update president display (shows all, highlights active)
+    updatePresidentDisplay();
 
     // Update conflicts list
     updateConflictsList(activeConflicts);
@@ -154,23 +162,46 @@ function generateAvatar(initials, party) {
 }
 
 /**
- * Update the president display panel
- * @param {Array} presidents - Array of active president objects
+ * Check if a president's term overlaps with the current date range
+ * @param {Object} president - President object
+ * @returns {boolean} True if president is active in current range
  */
-function updatePresidentDisplay(presidentsArr) {
+function isPresidentActive(president) {
+    const termStart = new Date(president.start);
+    const termEnd = new Date(president.end);
+    return termStart <= currentEndDate && termEnd >= currentStartDate;
+}
+
+/**
+ * Update the president display panel - shows ALL presidents, highlights active ones
+ */
+function updatePresidentDisplay() {
     const container = document.getElementById('president-display');
 
-    if (presidentsArr.length === 0) {
-        container.innerHTML = '<p class="no-conflicts">No president data for this period</p>';
-        return;
-    }
-
-    container.innerHTML = presidentsArr.map(president => {
+    container.innerHTML = presidents.map((president, index) => {
+        // Use LOC portrait if available, otherwise fall back to generated avatar
         const initials = getInitials(president.name);
-        const avatar = generateAvatar(initials, president.party);
+        const fallbackAvatar = generateAvatar(initials, president.party);
+        const imgSrc = president.portrait || fallbackAvatar;
+        const isSelected = selectedPresident &&
+            selectedPresident.name === president.name &&
+            selectedPresident.start === president.start;
+        const isActive = isPresidentActive(president);
+
+        let cardClass = 'president-card';
+        if (isSelected) {
+            cardClass += ' selected';
+        } else if (isActive) {
+            cardClass += ' active';
+        } else {
+            cardClass += ' inactive';
+        }
+
         return `
-            <div class="president-card">
-                <img src="${avatar}" alt="${president.name}">
+            <div class="${cardClass}"
+                 onclick="selectPresident('${president.start}')"
+                 title="Click to highlight conflicts during this presidency">
+                <img src="${imgSrc}" alt="${president.name}" onerror="this.src='${fallbackAvatar}'">
                 <div class="president-info">
                     <div class="president-name">${president.name}</div>
                     <div class="president-dates">${formatPresidentDates(president)}</div>
@@ -178,6 +209,37 @@ function updatePresidentDisplay(presidentsArr) {
             </div>
         `;
     }).join('');
+}
+
+/**
+ * Handle president selection - highlights conflicts during their term
+ * @param {string} startDate - The president's term start date
+ */
+function selectPresident(startDate) {
+    const president = presidents.find(p => p.start === startDate);
+
+    if (!president) return;
+
+    // Toggle selection if clicking the same president
+    if (selectedPresident && selectedPresident.start === startDate) {
+        selectedPresident = null;
+        isPresidentSelection = true;
+        // Reset slider to full range
+        slider.set([1900, 2026]);
+        isPresidentSelection = false;
+        return;
+    }
+
+    selectedPresident = president;
+
+    // Get president's term years
+    const termStartYear = new Date(president.start).getFullYear();
+    const termEndYear = new Date(president.end).getFullYear();
+
+    // Update slider to match president's term
+    isPresidentSelection = true;
+    slider.set([termStartYear, termEndYear]);
+    isPresidentSelection = false;
 }
 
 /**
@@ -211,10 +273,14 @@ function updateConflictsList(conflictsArr) {
     container.innerHTML = sorted.map(conflict => {
         const startYear = new Date(conflict.startDate).getFullYear();
         const endYear = new Date(conflict.endDate).getFullYear();
+        const type = conflictTypes[conflict.type];
         return `
             <div class="conflict-item" onclick="showConflictDetails('${conflict.id}')">
-                <div class="conflict-name">${conflict.name}</div>
-                <div class="conflict-dates">${startYear} - ${endYear}</div>
+                <span class="conflict-type-indicator" style="background-color: ${type ? type.color : '#e53e3e'}"></span>
+                <div class="conflict-item-content">
+                    <div class="conflict-name">${conflict.name}</div>
+                    <div class="conflict-dates">${startYear} - ${endYear}</div>
+                </div>
             </div>
         `;
     }).join('');
@@ -238,13 +304,16 @@ function showConflictDetails(conflictId) {
     // Get country names
     const countryList = conflict.countries.map(code => getCountryName(code));
 
+    const conflictType = conflictTypes[conflict.type];
     modalBody.innerHTML = `
         <div class="conflict-detail">
             <div class="conflict-detail-header">
                 <h2>${conflict.name}</h2>
                 <div class="conflict-detail-dates">${dateRange}</div>
+                <div class="conflict-type-badge" style="background-color: ${conflictType ? conflictType.color : '#e53e3e'}">
+                    ${conflictType ? conflictType.name : 'Unknown Type'}
+                </div>
             </div>
-
 
             <div class="conflict-detail-section">
                 <h3>Description</h3>

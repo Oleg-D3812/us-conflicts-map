@@ -95,6 +95,13 @@ body {
     padding: 0.75rem;
     border-radius: 8px;
     border: 1px solid var(--border-color);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.president-card:hover {
+    border-color: var(--accent-color);
+    transform: translateX(3px);
 }
 
 .president-card img {
@@ -119,6 +126,34 @@ body {
     color: var(--text-muted);
 }
 
+.president-card.selected {
+    border-color: var(--accent-color);
+    background: rgba(229, 62, 62, 0.15);
+    box-shadow: 0 0 0 2px var(--accent-color);
+}
+
+.president-card.selected .president-name {
+    color: var(--accent-color);
+}
+
+.president-card.active {
+    border-color: #48bb78;
+    background: rgba(72, 187, 120, 0.15);
+}
+
+.president-card.active .president-name {
+    color: #48bb78;
+}
+
+.president-card.inactive {
+    opacity: 0.4;
+    filter: grayscale(50%);
+}
+
+.president-card.inactive:hover {
+    opacity: 0.7;
+}
+
 /* Conflicts Panel */
 .conflicts-panel {
     margin-bottom: 1.5rem;
@@ -139,11 +174,26 @@ body {
     cursor: pointer;
     border: 1px solid var(--border-color);
     transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
 }
 
 .conflict-item:hover {
     border-color: var(--accent-color);
     transform: translateX(3px);
+}
+
+.conflict-type-indicator {
+    width: 4px;
+    height: 100%;
+    min-height: 36px;
+    border-radius: 2px;
+    flex-shrink: 0;
+}
+
+.conflict-item-content {
+    flex: 1;
 }
 
 .conflict-item .conflict-name {
@@ -183,13 +233,20 @@ body {
     border-radius: 4px;
 }
 
-.legend-color.active-conflict {
-    background-color: var(--conflict-color);
-    opacity: 0.7;
+.legend-color.type1 {
+    background-color: #e53e3e;
 }
 
-.legend-color.multiple-conflicts {
-    background-color: var(--multiple-conflict-color);
+.legend-color.type2 {
+    background-color: #ed8936;
+}
+
+.legend-color.type3 {
+    background-color: #9f7aea;
+}
+
+.legend-color.type4 {
+    background-color: #4299e1;
 }
 
 /* Map Container */
@@ -350,6 +407,16 @@ body {
 .conflict-detail-dates {
     font-size: 1rem;
     color: var(--text-muted);
+}
+
+.conflict-type-badge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: white;
+    margin-top: 0.5rem;
 }
 
 .conflict-detail-image {
