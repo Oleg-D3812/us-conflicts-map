@@ -7,6 +7,7 @@ let geoJsonLayer;
 let countryLayers = {};
 let highlightedCountries = new Set();
 let countryConflictData = {}; // Stores conflict type and count per country
+let allConflictCountries = new Set(); // All countries ever referenced in conflicts
 
 // GeoJSON data URL (Natural Earth data via CDN)
 const GEOJSON_URL = 'https://raw.githubusercontent.com/datasets/geo-countries/master/data/countries.geojson';
@@ -33,8 +34,97 @@ function initMap() {
         maxZoom: 19
     }).addTo(map);
 
+    // Build set of all countries referenced in conflicts
+    buildAllConflictCountries();
+
+    // Add SVG pattern for diagonal shading
+    addDiagonalPattern();
+
     // Load GeoJSON country boundaries
     loadCountryBoundaries();
+}
+
+/**
+ * Build set of all countries ever referenced in conflicts data
+ */
+function buildAllConflictCountries() {
+    if (typeof conflicts !== 'undefined') {
+        conflicts.forEach(conflict => {
+            conflict.countries.forEach(code => {
+                allConflictCountries.add(code);
+            });
+        });
+    }
+    console.log('Countries with conflicts:', allConflictCountries.size);
+}
+
+/**
+ * Add SVG pattern definition for diagonal shading
+ */
+function addDiagonalPattern() {
+    // Create SVG element with pattern definition
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('width', '0');
+    svg.setAttribute('height', '0');
+    svg.style.position = 'absolute';
+    svg.innerHTML = `
+        <defs>
+            <pattern id="diagonal-stripe" patternUnits="userSpaceOnUse" width="8" height="8" patternTransform="rotate(45)">
+                <line x1="0" y1="0" x2="0" y2="8" stroke="#6b7280" stroke-width="2" />
+            </pattern>
+        </defs>
+    `;
+    document.body.appendChild(svg);
+}
+
+/**
+ * Apply diagonal stripe pattern to all countries that appear in conflicts data
+ */
+function applyDiagonalPatternToConflictCountries() {
+    // Delay to ensure SVG elements are available and highlighting has completed
+    setTimeout(() => {
+        allConflictCountries.forEach(code => {
+            // Skip countries that are currently highlighted with active conflicts
+            if (highlightedCountries.has(code)) return;
+            if (countryLayers[code]) {
+                const layer = countryLayers[code];
+                const element = layer.getElement();
+                if (element) {
+                    element.style.fill = 'url(#diagonal-stripe)';
+                    element.style.fillOpacity = '1';
+                }
+            }
+        });
+    }, 200);
+}
+
+/**
+ * Reapply diagonal pattern to a specific country (used after style reset)
+ */
+function reapplyDiagonalPattern(countryCode) {
+    if (allConflictCountries.has(countryCode) && countryLayers[countryCode]) {
+        const element = countryLayers[countryCode].getElement();
+        if (element) {
+            element.style.fill = 'url(#diagonal-stripe)';
+            element.style.fillOpacity = '1';
+        }
+    }
+}
+
+/**
+ * Reapply diagonal pattern to all conflict countries not currently highlighted
+ */
+function reapplyDiagonalPatternToInactiveCountries() {
+    allConflictCountries.forEach(code => {
+        // Only apply to countries not currently highlighted with active conflicts
+        if (!highlightedCountries.has(code) && countryLayers[code]) {
+            const element = countryLayers[code].getElement();
+            if (element) {
+                element.style.fill = 'url(#diagonal-stripe)';
+                element.style.fillOpacity = '1';
+            }
+        }
+    });
 }
 
 /**
@@ -61,6 +151,14 @@ async function loadCountryBoundaries() {
 
         console.log('Country boundaries loaded successfully');
 
+        // Apply diagonal pattern to all conflict countries
+        applyDiagonalPatternToConflictCountries();
+
+        // Reapply diagonal pattern after map events that might recreate SVG elements
+        map.on('zoomend moveend', function() {
+            setTimeout(reapplyDiagonalPatternToInactiveCountries, 50);
+        });
+
         // Trigger initial update if app is ready
         if (typeof updateDisplay === 'function') {
             updateDisplay();
@@ -74,6 +172,20 @@ async function loadCountryBoundaries() {
  * Default styling for countries
  */
 function defaultCountryStyle(feature) {
+    const countryCode = feature.properties['ISO3166-1-Alpha-2'];
+    const isConflictCountry = allConflictCountries.has(countryCode);
+
+    if (isConflictCountry) {
+        return {
+            fillColor: '#4a5568',
+            weight: 1,
+            opacity: 0.5,
+            color: '#4a5568',
+            fillOpacity: 0.3,
+            className: 'conflict-country-pattern'
+        };
+    }
+
     return {
         fillColor: 'transparent',
         weight: 1,
@@ -96,7 +208,7 @@ function highlightStyle(typeId, hasMultiple) {
         weight: 2,
         opacity: 1,
         color: hasMultiple ? '#ffffff' : lightenColor(color, 30),
-        fillOpacity: hasMultiple ? 0.8 : 0.6
+        fillOpacity: 1.0
     };
 }
 
@@ -159,9 +271,24 @@ function resetHighlightOnHover(e) {
         const data = countryConflictData[countryCode];
         const hasMultiple = data.count > 1;
         const primaryType = getPrimaryConflictType(data.types);
-        layer.setStyle(highlightStyle(primaryType, hasMultiple));
+        const style = highlightStyle(primaryType, hasMultiple);
+        layer.setStyle(style);
+        // Set inline fill style to override diagonal pattern
+        const element = layer.getElement();
+        if (element) {
+            element.style.fill = style.fillColor;
+            element.style.fillOpacity = style.fillOpacity;
+        }
     } else {
         layer.setStyle(defaultCountryStyle(layer.feature));
+        // Reapply diagonal pattern for conflict countries
+        if (allConflictCountries.has(countryCode)) {
+            const element = layer.getElement();
+            if (element) {
+                element.style.fill = 'url(#diagonal-stripe)';
+                element.style.fillOpacity = '1';
+            }
+        }
     }
 }
 
@@ -186,6 +313,14 @@ function updateHighlightedCountries(activeConflicts) {
     highlightedCountries.forEach(code => {
         if (countryLayers[code]) {
             countryLayers[code].setStyle(defaultCountryStyle(countryLayers[code].feature));
+            // Reapply diagonal pattern for conflict countries not currently active
+            if (allConflictCountries.has(code)) {
+                const element = countryLayers[code].getElement();
+                if (element) {
+                    element.style.fill = 'url(#diagonal-stripe)';
+                    element.style.fillOpacity = '1';
+                }
+            }
         }
     });
     highlightedCountries.clear();
@@ -209,17 +344,37 @@ function updateHighlightedCountries(activeConflicts) {
     });
 
     // Highlight new countries with type-based colors
-    Object.keys(countryConflictData).forEach(code => {
+    const codesToHighlight = Object.keys(countryConflictData);
+    codesToHighlight.forEach(code => {
         if (countryLayers[code]) {
             highlightedCountries.add(code);
             const data = countryConflictData[code];
             const hasMultiple = data.count > 1;
-            // Use the most severe type (type1 > type2 > type3 > type4)
             const primaryType = getPrimaryConflictType(data.types);
-            countryLayers[code].setStyle(highlightStyle(primaryType, hasMultiple));
+            const style = highlightStyle(primaryType, hasMultiple);
+            countryLayers[code].setStyle(style);
             countryLayers[code].bringToFront();
         }
     });
+
+    // Apply fill colors after a short delay to ensure DOM elements are ready
+    setTimeout(() => {
+        codesToHighlight.forEach(code => {
+            if (countryLayers[code] && highlightedCountries.has(code)) {
+                const data = countryConflictData[code];
+                if (data) {
+                    const hasMultiple = data.count > 1;
+                    const primaryType = getPrimaryConflictType(data.types);
+                    const style = highlightStyle(primaryType, hasMultiple);
+                    const element = countryLayers[code].getElement();
+                    if (element) {
+                        element.style.fill = style.fillColor;
+                        element.style.fillOpacity = '1';
+                    }
+                }
+            }
+        });
+    }, 50);
 }
 
 /**

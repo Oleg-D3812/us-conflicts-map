@@ -64,7 +64,14 @@ body {
     background-color: var(--sidebar-bg);
     padding: 1rem;
     overflow-y: auto;
+}
+
+.sidebar-left {
     border-right: 1px solid var(--border-color);
+}
+
+.sidebar-right {
+    border-left: 1px solid var(--border-color);
 }
 
 .sidebar h2 {
@@ -163,7 +170,7 @@ body {
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
-    max-height: 300px;
+    max-height: calc(100vh - 200px);
     overflow-y: auto;
 }
 
@@ -181,7 +188,7 @@ body {
 
 .conflict-item:hover {
     border-color: var(--accent-color);
-    transform: translateX(3px);
+    transform: translateX(-3px);
 }
 
 .conflict-type-indicator {
@@ -555,6 +562,11 @@ body {
     border-bottom: none;
 }
 
+/* Diagonal stripe pattern for conflict countries - applied via inline style in JS */
+.conflict-country-pattern {
+    /* fill handled by JavaScript */
+}
+
 /* Scrollbar Styles */
 ::-webkit-scrollbar {
     width: 8px;
@@ -582,12 +594,26 @@ body {
     .sidebar {
         width: 100%;
         max-height: 200px;
+    }
+
+    .sidebar-left {
         border-right: none;
         border-bottom: 1px solid var(--border-color);
     }
 
+    .sidebar-right {
+        border-left: none;
+        border-top: 1px solid var(--border-color);
+        order: 3;
+    }
+
+    .map-container {
+        order: 2;
+        min-height: 300px;
+    }
+
     .conflicts-list {
-        max-height: 100px;
+        max-height: 150px;
     }
 }
 
