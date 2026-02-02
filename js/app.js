@@ -3,12 +3,28 @@
  * Handles timeline, filtering, and UI updates
  */
 
+// Cookie helper functions
+function setCookie(name, value, days = 365) {
+    const expires = new Date(Date.now() + days * 864e5).toUTCString();
+    document.cookie = `${name}=${encodeURIComponent(value)}; expires=${expires}; path=/; SameSite=Lax`;
+}
+
+function getCookie(name) {
+    const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+    return match ? decodeURIComponent(match[2]) : null;
+}
+
+function deleteCookie(name) {
+    document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/`;
+}
+
 // Application state
 let currentStartDate = new Date('2016-01-01');
 let currentEndDate = new Date('2026-12-31');
 let slider;
 let selectedPresident = null;
 let isPresidentSelection = false; // Flag to track programmatic slider changes
+let selectedCountry = null; // Currently selected country for filtering
 
 /**
  * Initialize the application
@@ -17,8 +33,24 @@ document.addEventListener('DOMContentLoaded', () => {
     initMap();
     initTimeline();
     initModal();
+    loadSavedCountryFilter();
     updateDisplay();
 });
+
+/**
+ * Load saved country filter from cookies
+ */
+function loadSavedCountryFilter() {
+    const savedCountryCode = getCookie('selectedCountryCode');
+    const savedCountryName = getCookie('selectedCountryName');
+    if (savedCountryCode && savedCountryName) {
+        selectedCountry = { code: savedCountryCode, name: savedCountryName };
+        // Highlight the selected country on the map
+        if (typeof setSelectedCountry === 'function') {
+            setSelectedCountry(savedCountryCode);
+        }
+    }
+}
 
 /**
  * Initialize the timeline slider
@@ -26,9 +58,15 @@ document.addEventListener('DOMContentLoaded', () => {
 function initTimeline() {
     const sliderElement = document.getElementById('timeline-slider');
 
+    // Load saved date range from cookies or use defaults
+    const savedStartYear = getCookie('dateRangeStart');
+    const savedEndYear = getCookie('dateRangeEnd');
+    const startYear = savedStartYear ? parseInt(savedStartYear) : 2016;
+    const endYear = savedEndYear ? parseInt(savedEndYear) : 2026;
+
     // Create date range slider
     slider = noUiSlider.create(sliderElement, {
-        start: [2016, 2026],
+        start: [startYear, endYear],
         connect: true,
         step: 1,
         range: {
@@ -52,6 +90,10 @@ function initTimeline() {
         // Update date display
         document.getElementById('start-date-display').textContent = startYear;
         document.getElementById('end-date-display').textContent = endYear;
+
+        // Save date range to cookies
+        setCookie('dateRangeStart', startYear);
+        setCookie('dateRangeEnd', endYear);
 
         // Update map and sidebar
         updateDisplay();
@@ -178,7 +220,7 @@ function isPresidentActive(president) {
 function updatePresidentDisplay() {
     const container = document.getElementById('president-display');
 
-    container.innerHTML = presidents.map((president, index) => {
+    container.innerHTML = presidents.slice().reverse().map((president, index) => {
         // Use LOC portrait if available, otherwise fall back to generated avatar
         const initials = getInitials(president.name);
         const fallbackAvatar = generateAvatar(initials, president.party);
@@ -259,31 +301,84 @@ function formatPresidentDates(president) {
  */
 function updateConflictsList(conflictsArr) {
     const container = document.getElementById('conflicts-list');
+    const headerEl = document.querySelector('.conflicts-panel h2');
 
-    if (conflictsArr.length === 0) {
-        container.innerHTML = '<p class="no-conflicts">No conflicts in selected period</p>';
+    // Apply country filter if one is selected
+    let filteredConflicts = conflictsArr;
+    if (selectedCountry) {
+        filteredConflicts = conflictsArr.filter(c => c.countries.includes(selectedCountry.code));
+        headerEl.innerHTML = `${selectedCountry.name} <button class="clear-filter-btn" onclick="clearCountryFilter()" title="Show all conflicts">&times;</button>`;
+    } else {
+        headerEl.textContent = 'Active Conflicts';
+    }
+
+    if (filteredConflicts.length === 0) {
+        const message = selectedCountry
+            ? `No conflicts for ${selectedCountry.name} in selected period`
+            : 'No conflicts in selected period';
+        container.innerHTML = `<p class="no-conflicts">${message}</p>`;
         return;
     }
 
-    // Sort by start date
-    const sorted = [...conflictsArr].sort((a, b) =>
+    // Sort by start date (chronological order)
+    const sorted = [...filteredConflicts].sort((a, b) =>
         new Date(a.startDate) - new Date(b.startDate)
     );
 
     container.innerHTML = sorted.map(conflict => {
-        const startYear = new Date(conflict.startDate).getFullYear();
-        const endYear = new Date(conflict.endDate).getFullYear();
+        const startDate = formatDateShort(new Date(conflict.startDate));
+        const endDate = formatDateShort(new Date(conflict.endDate));
         const type = conflictTypes[conflict.type];
         return `
             <div class="conflict-item" onclick="showConflictDetails('${conflict.id}')">
                 <span class="conflict-type-indicator" style="background-color: ${type ? type.color : '#e53e3e'}"></span>
                 <div class="conflict-item-content">
                     <div class="conflict-name">${conflict.name}</div>
-                    <div class="conflict-dates">${startYear} - ${endYear}</div>
+                    <div class="conflict-dates">${startDate} - ${endDate}</div>
                 </div>
             </div>
         `;
     }).join('');
+}
+
+/**
+ * Filter conflicts by country (called when user clicks on a country)
+ * @param {string} countryCode - ISO country code
+ * @param {string} countryName - Full country name
+ */
+function filterConflictsByCountry(countryCode, countryName) {
+    // Toggle filter if clicking the same country
+    if (selectedCountry && selectedCountry.code === countryCode) {
+        clearCountryFilter();
+        return;
+    }
+
+    selectedCountry = { code: countryCode, name: countryName };
+    // Save country selection to cookies
+    setCookie('selectedCountryCode', countryCode);
+    setCookie('selectedCountryName', countryName);
+    // Highlight the selected country on the map
+    if (typeof setSelectedCountry === 'function') {
+        setSelectedCountry(countryCode);
+    }
+    // Only update the conflicts list, not the map (no need to re-highlight)
+    updateConflictsList(getActiveConflicts());
+}
+
+/**
+ * Clear the country filter and show all conflicts
+ */
+function clearCountryFilter() {
+    selectedCountry = null;
+    // Clear country cookies
+    deleteCookie('selectedCountryCode');
+    deleteCookie('selectedCountryName');
+    // Clear the selection highlight on the map
+    if (typeof setSelectedCountry === 'function') {
+        setSelectedCountry(null);
+    }
+    // Only update the conflicts list, not the map
+    updateConflictsList(getActiveConflicts());
 }
 
 /**
@@ -370,6 +465,16 @@ function showConflictDetails(conflictId) {
  */
 function formatDate(date) {
     const options = { year: 'numeric', month: 'long', day: 'numeric' };
+    return date.toLocaleDateString('en-US', options);
+}
+
+/**
+ * Format a date object to a short readable string (e.g., "Oct 7, 2001")
+ * @param {Date} date - Date object
+ * @returns {string} Formatted date string
+ */
+function formatDateShort(date) {
+    const options = { year: 'numeric', month: 'short', day: 'numeric' };
     return date.toLocaleDateString('en-US', options);
 }
 
