@@ -24,21 +24,13 @@
 
         <!-- Main Content -->
         <div class="main-content">
-            <!-- Sidebar -->
-            <aside class="sidebar">
+            <!-- Left Sidebar -->
+            <aside class="sidebar sidebar-left">
                 <!-- President Display -->
                 <div class="president-panel">
                     <h2>President(s)</h2>
                     <div id="president-display" class="president-display">
                         <!-- Presidents will be inserted here -->
-                    </div>
-                </div>
-
-                <!-- Active Conflicts List -->
-                <div class="conflicts-panel">
-                    <h2>Active Conflicts</h2>
-                    <div id="conflicts-list" class="conflicts-list">
-                        <p class="no-conflicts">Select a date range to see conflicts</p>
                     </div>
                 </div>
 
@@ -68,6 +60,17 @@
             <div class="map-container">
                 <div id="map"></div>
             </div>
+
+            <!-- Right Sidebar -->
+            <aside class="sidebar sidebar-right">
+                <!-- Active Conflicts List -->
+                <div class="conflicts-panel">
+                    <h2>Active Conflicts</h2>
+                    <div id="conflicts-list" class="conflicts-list">
+                        <p class="no-conflicts">Select a date range to see conflicts</p>
+                    </div>
+                </div>
+            </aside>
         </div>
 
         <!-- Timeline -->
@@ -106,6 +109,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.7.1/nouislider.min.js"></script>
 
     <!-- Application JS -->
+    <script src="js/data_aux.js"></script>
     <script src="js/data.js"></script>
     <script src="js/map.js"></script>
     <script src="js/app.js"></script>

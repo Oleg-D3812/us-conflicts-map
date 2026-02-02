@@ -8,6 +8,7 @@ let countryLayers = {};
 let highlightedCountries = new Set();
 let countryConflictData = {}; // Stores conflict type and count per country
 let allConflictCountries = new Set(); // All countries ever referenced in conflicts
+let selectedFilterCountry = null; // Currently selected country for filtering
 
 // GeoJSON data URL (Natural Earth data via CDN)
 const GEOJSON_URL = 'https://raw.githubusercontent.com/datasets/geo-countries/master/data/countries.geojson';
@@ -37,9 +38,6 @@ function initMap() {
     // Build set of all countries referenced in conflicts
     buildAllConflictCountries();
 
-    // Add SVG pattern for diagonal shading
-    addDiagonalPattern();
-
     // Load GeoJSON country boundaries
     loadCountryBoundaries();
 }
@@ -58,29 +56,16 @@ function buildAllConflictCountries() {
     console.log('Countries with conflicts:', allConflictCountries.size);
 }
 
-/**
- * Add SVG pattern definition for diagonal shading
- */
-function addDiagonalPattern() {
-    // Create SVG element with pattern definition
-    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-    svg.setAttribute('width', '0');
-    svg.setAttribute('height', '0');
-    svg.style.position = 'absolute';
-    svg.innerHTML = `
-        <defs>
-            <pattern id="diagonal-stripe" patternUnits="userSpaceOnUse" width="8" height="8" patternTransform="rotate(45)">
-                <line x1="0" y1="0" x2="0" y2="8" stroke="#6b7280" stroke-width="2" />
-            </pattern>
-        </defs>
-    `;
-    document.body.appendChild(svg);
-}
+// Solid fill color for inactive conflict countries
+const INACTIVE_CONFLICT_FILL = '#272c31';
+
+// Selection highlight color (bright outline for filtered country)
+const SELECTION_BORDER_COLOR = '#fbbf24'; // Amber/gold color
 
 /**
- * Apply diagonal stripe pattern to all countries that appear in conflicts data
+ * Apply solid fill to all countries that appear in conflicts data
  */
-function applyDiagonalPatternToConflictCountries() {
+function applyFillToConflictCountries() {
     // Delay to ensure SVG elements are available and highlighting has completed
     setTimeout(() => {
         allConflictCountries.forEach(code => {
@@ -90,7 +75,7 @@ function applyDiagonalPatternToConflictCountries() {
                 const layer = countryLayers[code];
                 const element = layer.getElement();
                 if (element) {
-                    element.style.fill = 'url(#diagonal-stripe)';
+                    element.style.fill = INACTIVE_CONFLICT_FILL;
                     element.style.fillOpacity = '1';
                 }
             }
@@ -99,32 +84,111 @@ function applyDiagonalPatternToConflictCountries() {
 }
 
 /**
- * Reapply diagonal pattern to a specific country (used after style reset)
+ * Reapply solid fill to a specific country (used after style reset)
  */
-function reapplyDiagonalPattern(countryCode) {
+function reapplyFillToCountry(countryCode) {
     if (allConflictCountries.has(countryCode) && countryLayers[countryCode]) {
         const element = countryLayers[countryCode].getElement();
         if (element) {
-            element.style.fill = 'url(#diagonal-stripe)';
+            element.style.fill = INACTIVE_CONFLICT_FILL;
             element.style.fillOpacity = '1';
         }
     }
 }
 
 /**
- * Reapply diagonal pattern to all conflict countries not currently highlighted
+ * Reapply solid fill to all conflict countries not currently highlighted
  */
-function reapplyDiagonalPatternToInactiveCountries() {
+function reapplyFillToInactiveCountries() {
     allConflictCountries.forEach(code => {
         // Only apply to countries not currently highlighted with active conflicts
         if (!highlightedCountries.has(code) && countryLayers[code]) {
             const element = countryLayers[code].getElement();
             if (element) {
-                element.style.fill = 'url(#diagonal-stripe)';
+                element.style.fill = INACTIVE_CONFLICT_FILL;
                 element.style.fillOpacity = '1';
             }
         }
     });
+    // Reapply selection highlight if a country is selected
+    if (selectedFilterCountry) {
+        applySelectionHighlight(selectedFilterCountry);
+    }
+}
+
+/**
+ * Set the selected country for filtering and highlight it on the map
+ * @param {string} countryCode - ISO country code to select, or null to clear
+ */
+function setSelectedCountry(countryCode) {
+    // Clear previous selection
+    if (selectedFilterCountry && countryLayers[selectedFilterCountry]) {
+        clearSelectionHighlight(selectedFilterCountry);
+    }
+
+    selectedFilterCountry = countryCode;
+
+    // Apply new selection highlight
+    if (countryCode && countryLayers[countryCode]) {
+        applySelectionHighlight(countryCode);
+    }
+}
+
+/**
+ * Apply selection highlight (bright border) to a country
+ * @param {string} countryCode - ISO country code
+ */
+function applySelectionHighlight(countryCode) {
+    if (!countryLayers[countryCode]) return;
+
+    const layer = countryLayers[countryCode];
+    const element = layer.getElement();
+    if (element) {
+        element.style.stroke = SELECTION_BORDER_COLOR;
+        element.style.strokeWidth = '3';
+        element.style.strokeOpacity = '1';
+    }
+    layer.bringToFront();
+}
+
+/**
+ * Clear selection highlight from a country
+ * @param {string} countryCode - ISO country code
+ */
+function clearSelectionHighlight(countryCode) {
+    if (!countryLayers[countryCode]) return;
+
+    const layer = countryLayers[countryCode];
+    const element = layer.getElement();
+    const isHighlighted = highlightedCountries.has(countryCode);
+
+    // Clear the inline stroke styles first
+    if (element) {
+        element.style.stroke = '';
+        element.style.strokeWidth = '';
+        element.style.strokeOpacity = '';
+    }
+
+    // Restore appropriate border style
+    if (isHighlighted && countryConflictData[countryCode]) {
+        const data = countryConflictData[countryCode];
+        const hasMultiple = data.count > 1;
+        const primaryType = getPrimaryConflictType(data.types);
+        const style = highlightStyle(primaryType, hasMultiple);
+        layer.setStyle(style);
+        if (element) {
+            element.style.fill = style.fillColor;
+            element.style.fillOpacity = '1';
+        }
+    } else {
+        layer.setStyle(defaultCountryStyle(layer.feature));
+        if (allConflictCountries.has(countryCode)) {
+            if (element) {
+                element.style.fill = INACTIVE_CONFLICT_FILL;
+                element.style.fillOpacity = '1';
+            }
+        }
+    }
 }
 
 /**
@@ -151,12 +215,12 @@ async function loadCountryBoundaries() {
 
         console.log('Country boundaries loaded successfully');
 
-        // Apply diagonal pattern to all conflict countries
-        applyDiagonalPatternToConflictCountries();
+        // Apply solid fill to all conflict countries
+        applyFillToConflictCountries();
 
-        // Reapply diagonal pattern after map events that might recreate SVG elements
+        // Reapply fill after map events that might recreate SVG elements
         map.on('zoomend moveend', function() {
-            setTimeout(reapplyDiagonalPatternToInactiveCountries, 50);
+            setTimeout(reapplyFillToInactiveCountries, 50);
         });
 
         // Trigger initial update if app is ready
@@ -179,8 +243,8 @@ function defaultCountryStyle(feature) {
         return {
             fillColor: '#4a5568',
             weight: 1,
-            opacity: 0.5,
-            color: '#4a5568',
+            opacity: 0.6,
+            color: '#ffffff',
             fillOpacity: 0.3,
             className: 'conflict-country-pattern'
         };
@@ -205,9 +269,9 @@ function highlightStyle(typeId, hasMultiple) {
     const color = type ? type.color : '#e53e3e';
     return {
         fillColor: color,
-        weight: 2,
-        opacity: 1,
-        color: hasMultiple ? '#ffffff' : lightenColor(color, 30),
+        weight: 1,
+        opacity: 0.8,
+        color: '#ffffff',
         fillOpacity: 1.0
     };
 }
@@ -281,11 +345,11 @@ function resetHighlightOnHover(e) {
         }
     } else {
         layer.setStyle(defaultCountryStyle(layer.feature));
-        // Reapply diagonal pattern for conflict countries
+        // Reapply solid fill for conflict countries
         if (allConflictCountries.has(countryCode)) {
             const element = layer.getElement();
             if (element) {
-                element.style.fill = 'url(#diagonal-stripe)';
+                element.style.fill = INACTIVE_CONFLICT_FILL;
                 element.style.fillOpacity = '1';
             }
         }
@@ -293,14 +357,17 @@ function resetHighlightOnHover(e) {
 }
 
 /**
- * Handle country click
+ * Handle country click - filters conflicts list to show only this country's conflicts
  */
 function onCountryClick(e) {
     const countryCode = e.target.feature.properties['ISO3166-1-Alpha-2'];
     const countryName = e.target.feature.properties.name;
 
-    if (highlightedCountries.has(countryCode)) {
-        showCountryConflicts(countryCode, countryName, e.latlng);
+    // Only respond to clicks on countries that have conflicts (highlighted or in conflict data)
+    if (highlightedCountries.has(countryCode) || allConflictCountries.has(countryCode)) {
+        if (typeof filterConflictsByCountry === 'function') {
+            filterConflictsByCountry(countryCode, countryName);
+        }
     }
 }
 
@@ -313,11 +380,11 @@ function updateHighlightedCountries(activeConflicts) {
     highlightedCountries.forEach(code => {
         if (countryLayers[code]) {
             countryLayers[code].setStyle(defaultCountryStyle(countryLayers[code].feature));
-            // Reapply diagonal pattern for conflict countries not currently active
+            // Reapply solid fill for conflict countries not currently active
             if (allConflictCountries.has(code)) {
                 const element = countryLayers[code].getElement();
                 if (element) {
-                    element.style.fill = 'url(#diagonal-stripe)';
+                    element.style.fill = INACTIVE_CONFLICT_FILL;
                     element.style.fillOpacity = '1';
                 }
             }

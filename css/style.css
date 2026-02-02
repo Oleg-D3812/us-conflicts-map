@@ -166,6 +166,34 @@ body {
     margin-bottom: 1.5rem;
 }
 
+.conflicts-panel h2 {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+}
+
+.clear-filter-btn {
+    background: var(--accent-color);
+    color: white;
+    border: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 14px;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: background 0.2s;
+}
+
+.clear-filter-btn:hover {
+    background: var(--hover-color);
+}
+
 .conflicts-list {
     display: flex;
     flex-direction: column;
@@ -562,9 +590,9 @@ body {
     border-bottom: none;
 }
 
-/* Diagonal stripe pattern for conflict countries - applied via inline style in JS */
+/* Conflict countries styling - fill handled by JavaScript */
 .conflict-country-pattern {
-    /* fill handled by JavaScript */
+    cursor: pointer;
 }
 
 /* Scrollbar Styles */
