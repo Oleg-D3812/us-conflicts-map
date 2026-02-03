@@ -73,7 +73,9 @@
         "id": "us-support-batista",
         "name": "Military Support for Batista Regime",
         "type": "type4",
-        "countries": ["CU"],
+        "countries": [
+            "CU"
+        ],
         "startDate": "1952-03-10",
         "endDate": "1958-03-14",
         "description": "The U.S. provided arms, training, and political legitimacy to Fulgencio Batista after his 1952 coup, viewing him as a stable, anti-communist ally who protected American business interests.",
@@ -88,7 +90,9 @@
         "id": "cia-rebel-funding",
         "name": "CIA Financial Hedging (July 26th Movement)",
         "type": "type4",
-        "countries": ["CU"],
+        "countries": [
+            "CU"
+        ],
         "startDate": "1957-10-01",
         "endDate": "1958-06-01",
         "description": "Declassified reports and historians like Tad Szulc indicate the CIA delivered approximately $50,000 to key members of Castro's 26th of July Movement to 'purchase goodwill' in case the rebels won.",
@@ -103,7 +107,9 @@
         "id": "1958-arms-embargo",
         "name": "U.S. Arms Embargo against Batista",
         "type": "Sanctions",
-        "countries": ["CU"],
+        "countries": [
+            "CU"
+        ],
         "startDate": "1958-03-14",
         "endDate": "1959-01-01",
         "description": "In response to Batista's human rights abuses, the Eisenhower administration suspended arms shipments, including a shipment of Garand rifles. This signaled a shift in U.S. support and demoralized Batista’s military.",
@@ -118,7 +124,9 @@
         "id": "cuba-embargo-bloqueo",
         "name": "U.S. Trade Embargo (El Bloqueo)",
         "type": "type4",
-        "countries": ["CU"],
+        "countries": [
+            "CU"
+        ],
         "startDate": "1960-10-19",
         "endDate": "2026-12-31",
         "description": "The longest-running commercial, economic, and financial embargo in modern history. Originally a response to nationalizations, it was codified into law to pressure the Cuban government toward democratization.",
@@ -133,7 +141,9 @@
         "id": "bay-of-pigs-invasion",
         "name": "Bay of Pigs Invasion (Playa Girón)",
         "type": "type1",
-        "countries": ["CU" ],
+        "countries": [
+            "CU"
+        ],
         "startDate": "1961-04-17",
         "endDate": "1961-04-20",
         "description": "A CIA-sponsored failed landing operation on the southwestern coast of Cuba by Cuban exiles (Brigade 2506) who opposed Fidel Castro's revolution.",
@@ -148,7 +158,9 @@
         "id": "operation-mongoose",
         "name": "Operation Mongoose (The Cuba Project)",
         "type": "type4",
-        "countries": ["CU" ],
+        "countries": [
+            "CU"
+        ],
         "startDate": "1961-11-30",
         "endDate": "1962-10-30",
         "description": "An extensive campaign of terror, psychological warfare, and sabotage conducted by the CIA to destabilize the Cuban government and remove the Communist regime.",
@@ -163,7 +175,9 @@
         "id": "castro-assassination-plots",
         "name": "CIA Assassination Attempts on Fidel Castro",
         "type": "type4",
-        "countries": ["CU" ],
+        "countries": [
+            "CU"
+        ],
         "startDate": "1960-01-01",
         "endDate": "2000-01-01",
         "description": "A series of hundreds of conceptual and active plots by the CIA to kill Fidel Castro, utilizing methods ranging from poison pills and exploding cigars to sniper teams.",
@@ -178,7 +192,10 @@
         "id": "cuban-missile-crisis-quarantine",
         "name": "Cuban Missile Crisis",
         "type": "type2",
-        "countries": ["CU", "SU"],
+        "countries": [
+            "CU",
+            "SU"
+        ],
         "startDate": "1962-10-22",
         "endDate": "1962-11-20",
         "description": "A naval blockade (termed 'quarantine' to avoid an act of war definition) established by the U.S. to prevent Soviet nuclear missiles from reaching Cuba.",
@@ -193,7 +210,9 @@
         "id": "helms-burton-act",
         "name": "Helms-Burton Act (Libertad Act)",
         "type": "type4",
-        "countries": ["CU" ],
+        "countries": [
+            "CU"
+        ],
         "startDate": "1996-03-12",
         "endDate": "2026-12-31",
         "description": "A federal law that strengthened the embargo by penalizing foreign companies that 'traffic' in property formerly owned by U.S. citizens but confiscated by Cuba.",
@@ -1030,5 +1049,39 @@
         },
         "outcome": "Ongoing",
         "wikiLink": "https://en.wikipedia.org/wiki/Red_Sea_crisis"
+    },
+    {
+        "id": "restation-the-maximum-pressure-campaign",
+        "name": "Restoration the \"maximum pressure\" campaign",
+        "type": "type4",
+        "countries": [
+            "IR"
+        ],
+        "startDate": "2025-02-04",
+        "endDate": "2027-12-27",
+        "description": "A formally re‑launched “maximum pressure” strategy (since February 2025) to force a more restrictive nuclear and regional behavior deal, including demands to end enrichment, export enriched uranium, and halt support for regional proxies.",
+        "casualties": {
+            "us": 0,
+            "total": 0
+        },
+        "outcome": "n/a",
+        "wikiLink": "https://news24online.com/world/us-leaves-door-open-for-diplomacy-but-iran-rejects-trumps-hardline-demands-on-uranium-regional-proxies-and-more/726347/"
+    },
+    {
+        "id": "deployment-of-the-uss-abraham-lincoln-carrier",
+        "name": "Deployment of the USS Abraham Lincoln carrier",
+        "type": "type4",
+        "countries": [
+            "IR"
+        ],
+        "startDate": "2026-01-22",
+        "endDate": "2028-06-06",
+        "description": "January 22, 2026. President Trump announced the deployment of the USS Abraham Lincoln carrier strike group and accompanying warships to the Middle East, specifically toward the Persian Gulf region, as a show of force amid tensions over Iran's protest crackdowns. The group entered the U.S. Central Command area (including the Gulf) on January 26",
+        "casualties": {
+            "us": 0,
+            "total": 0
+        },
+        "outcome": "n/a",
+        "wikiLink": "https://www.reuters.com/business/aerospace-defense/us-aircraft-carrier-enters-middle-east-region-officials-say-2026-01-26/"
     }
 ]
