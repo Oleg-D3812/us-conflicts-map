@@ -29,7 +29,9 @@ let selectedCountry = null; // Currently selected country for filtering
 /**
  * Initialize the application
  */
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+    // Wait for conflicts data to load before initializing
+    await conflictsLoaded;
     initMap();
     initTimeline();
     initModal();
@@ -327,7 +329,8 @@ function updateConflictsList(conflictsArr) {
 
     container.innerHTML = sorted.map(conflict => {
         const startDate = formatDateShort(new Date(conflict.startDate));
-        const endDate = formatDateShort(new Date(conflict.endDate));
+        const conflictEndDate = new Date(conflict.endDate);
+        const endDate = conflictEndDate > new Date() ? 'Present' : formatDateShort(conflictEndDate);
         const type = conflictTypes[conflict.type];
         return `
             <div class="conflict-item" onclick="showConflictDetails('${conflict.id}')">
