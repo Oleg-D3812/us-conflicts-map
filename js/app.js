@@ -447,7 +447,7 @@ function showConflictDetails(conflictId) {
             <div class="conflict-detail-section">
                 <a href="${conflict.wikiLink}" target="_blank" rel="noopener noreferrer"
                    class="conflict-detail-link">
-                    Learn More on Wikipedia →
+                    Learn More →
                 </a>
             </div>
         </div>

@@ -298,6 +298,15 @@ function lightenColor(color, percent) {
  * Setup interactions for each country
  */
 function onEachCountry(feature, layer) {
+    const name = feature.properties.name;
+    if (name) {
+        layer.bindTooltip(name, {
+            sticky: true,
+            direction: 'top',
+            className: 'country-tooltip'
+        });
+    }
+
     layer.on({
         mouseover: highlightOnHover,
         mouseout: resetHighlightOnHover,

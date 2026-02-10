@@ -1,0 +1,8 @@
+{
+    "perplexity_api_key": "YOUR_PERPLEXITY_API_KEY",
+    "openai_api_key": "YOUR_OPENAI_API_KEY",
+    "countries": [
+        "VE"
+    ],
+    "rate_limit_delay": 1.0
+}

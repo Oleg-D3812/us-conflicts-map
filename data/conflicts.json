@@ -224,6 +224,25 @@
         "wikiLink": "https://en.wikipedia.org/wiki/Helms%E2%80%93Burton_Act"
     },
     {
+        "id": "cuba-oil-tariff-2026",
+        "name": "US Tariff Threats on Countries Supplying Oil to Cuba",
+        "type": "type4",
+        "countries": [
+            "CU",
+            "VE",
+            "MX"
+        ],
+        "startDate": "2026-01-29",
+        "endDate": "2027-01-29",
+        "description": "Executive Order 14380 declares a national emergency with respect to Cuba and creates a framework for imposing additional ad valorem tariffs on goods imported into the US from any country that sells or otherwise provides crude oil or petroleum products to Cuba, directly or indirectly; the measure is explicitly intended to cut off remaining oil supplies to Cuba after Venezuelan exports largely ceased and to pressure key suppliers such as Mexico.",
+        "casualties": {
+            "us": 0,
+            "total": 0
+        },
+        "outcome": "Tariff authority established; no specific countries publicly reported as already subjected to additional duties as of early February 2026.",
+        "wikiLink": "https://www.whitehouse.gov/presidential-actions/2026/01/addressing-threats-to-the-united-states-by-the-government-of-cuba/"
+    },
+    {
         "id": "dominican-republic",
         "name": "Dominican Republic Intervention",
         "type": "type1",
@@ -1083,5 +1102,39 @@
         },
         "outcome": "n/a",
         "wikiLink": "https://www.reuters.com/business/aerospace-defense/us-aircraft-carrier-enters-middle-east-region-officials-say-2026-01-26/"
+    },
+    {
+        "id": "halt-on-cuban-oil-imports-post-maduro-capture",
+        "name": "Halt on Cuban Oil Imports Post-Maduro Capture",
+        "type": "type4",
+        "countries": [
+            "CU"
+        ],
+        "startDate": "2026-01-01",
+        "endDate": "2026-02-10",
+        "description": "Following the U.S. capture of Venezuelan leader Nicolás Maduro in January 2026, the Trump Administration halted Cuban oil imports from Venezuela, Cuba's primary supplier, to cut off subsidized oil and deepen Cuba's economic crisis, potentially triggering unrest.[7]",
+        "casualties": {
+            "us": 0,
+            "total": 0
+        },
+        "outcome": "Ongoing; contributes to pressure on Cuban regime",
+        "wikiLink": "https://www.congress.gov/crs-product/IN12650"
+    },
+    {
+        "id": "us-maximum-pressure-strategy-venezuela-2025",
+        "name": "US Maximum Pressure Strategy and Pre-Intervention Strikes in Venezuela",
+        "type": "type2",
+        "countries": [
+            "VE"
+        ],
+        "startDate": "2025-01-01",
+        "endDate": "2026-01-02",
+        "description": "Following a strategy of maximum pressure since January 2025, the US conducted military strikes on vessels in the Caribbean Sea starting in September 2025 alleging drug trafficking on behalf of Venezuela, escalated to land strikes in late December 2025 on a remote northern port used by Tren de Aragua for smuggling, as precursors to the January 2026 intervention. These actions aimed at crippling Maduro, disrupting drug trade, and accessing Venezuelan oil.",
+        "casualties": {
+            "us": 0,
+            "total": 0
+        },
+        "outcome": "Escalation leading to full intervention and Maduro's capture.",
+        "wikiLink": "https://en.wikipedia.org/wiki/2026_United_States_intervention_in_Venezuela"
     }
 ]

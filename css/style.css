@@ -29,26 +29,7 @@ body {
 .app-container {
     display: flex;
     flex-direction: column;
-    height: 100vh;
-}
-
-/* Header */
-.header {
-    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-    padding: 1rem 2rem;
-    text-align: center;
-    border-bottom: 2px solid var(--accent-color);
-}
-
-.header h1 {
-    font-size: 1.75rem;
-    font-weight: 700;
-    margin-bottom: 0.25rem;
-}
-
-.header .subtitle {
-    color: var(--text-muted);
-    font-size: 0.9rem;
+    min-height: 100vh;
 }
 
 /* Main Content Layout */
@@ -92,6 +73,8 @@ body {
     display: flex;
     flex-direction: column;
     gap: 0.75rem;
+    max-height: calc(100vh - 200px);
+    overflow-y: auto;
 }
 
 .president-card {
@@ -532,6 +515,21 @@ body {
     background: var(--accent-color);
 }
 
+/* Country Tooltip */
+.country-tooltip {
+    background: var(--sidebar-bg);
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.85rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.country-tooltip.leaflet-tooltip-top::before {
+    border-top-color: var(--border-color);
+}
+
 /* Leaflet Popup Customization */
 .leaflet-popup-content-wrapper {
     background: var(--sidebar-bg);
@@ -613,6 +611,68 @@ body {
     background: var(--text-muted);
 }
 
+/* Footer */
+.site-footer {
+    background-color: var(--primary-color);
+    border-top: 1px solid var(--border-color);
+    padding: 2rem 3rem 1rem;
+}
+
+.footer-content {
+    display: flex;
+    justify-content: space-between;
+    max-width: 1200px;
+    margin: 0 auto;
+    gap: 2rem;
+}
+
+.footer-section {
+    flex: 1;
+}
+
+.footer-section h3 {
+    font-size: 0.95rem;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+    color: var(--text-color);
+}
+
+.footer-section p {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    line-height: 1.6;
+}
+
+.footer-section ul {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.footer-section ul a {
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 0.85rem;
+    transition: color 0.2s;
+}
+
+.footer-section ul a:hover {
+    color: var(--accent-color);
+}
+
+.footer-bottom {
+    text-align: center;
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border-color);
+}
+
+.footer-bottom p {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
 /* Responsive Design */
 @media (max-width: 1024px) {
     .main-content {
@@ -660,5 +720,14 @@ body {
 
     .modal-content {
         max-height: 80vh;
+    }
+
+    .footer-content {
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+
+    .site-footer {
+        padding: 1.5rem 1rem 1rem;
     }
 }
